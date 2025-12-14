@@ -11,7 +11,7 @@
 body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: radial-gradient(circle at 20% 20%, rgba(245, 158, 11, 0.08), transparent 30%), radial-gradient(circle at 80% 0%, rgba(34, 197, 94, 0.08), transparent 35%), var(--bg);
+    background: radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 25%, transparent), transparent 30%), radial-gradient(circle at 80% 0%, rgba(34, 197, 94, 0.08), transparent 35%), var(--bg);
     color: var(--text);
     min-height: 100vh;
 }
@@ -68,14 +68,14 @@ header h1 span {
     padding: 10px 14px;
     border-radius: 10px;
     border: 1px solid transparent;
-    background: linear-gradient(135deg, #f59e0b, #f97316);
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #f97316));
     color: #0f172a;
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
     transition: all 0.15s ease;
 }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(245,158,11,0.25); }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 50%, transparent); }
 .btn.secondary {
     background: transparent;
     color: var(--text);
@@ -146,4 +146,33 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     header { flex-direction: column; align-items: flex-start; gap: 10px; position: static; }
     .container { padding: 16px; }
     .btn { width: 100%; justify-content: center; }
+}
+
+.hero {
+    position: relative;
+    height: 220px;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 30%, transparent), rgba(17,24,39,0.8));
+}
+.hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.2), rgba(15, 23, 42, 0.8));
+}
+.hero .hero-text {
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    color: var(--text);
+    z-index: 2;
+    text-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }

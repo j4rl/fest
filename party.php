@@ -27,8 +27,17 @@ $submissions = db_fetch_all($submissionsStmt);
 $shareLink = base_url() . 'submit.php?code=' . urlencode($party['share_code']);
 $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' . urlencode($shareLink);
 $maxGuests = max(1, (int) ($party['max_guests'] ?? 1));
+$accent = $party['theme_accent'] ?: '#f59e0b';
+$headerImg = $party['header_image'] ?? '';
+if (!preg_match('/^#?[0-9a-fA-F]{3,6}$/', $accent)) {
+    $accent = '#f59e0b';
+}
+if ($accent[0] !== '#') {
+    $accent = '#' . $accent;
+}
 
-render_header(__('Party details') . ' � ' . $party['title']);
+render_header(__('Party details') . ' — ' . $party['title']);
+echo '<style>:root{--accent:' . h($accent) . ';}</style>';
 ?>
 <header>
     <h1><?= h(__('Fest Planner')) ?></h1>
@@ -40,6 +49,15 @@ render_header(__('Party details') . ' � ' . $party['title']);
     </div>
 </header>
 <div class="container">
+    <?php if ($headerImg): ?>
+    <div class="hero">
+        <img src="<?= h($headerImg) ?>" alt="<?= h($party['title']) ?>">
+        <div class="hero-text">
+            <strong><?= h($party['title']) ?></strong>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
             <div>
@@ -48,7 +66,8 @@ render_header(__('Party details') . ' � ' . $party['title']);
                 <?php if ($party['location']): ?>
                     <div style="margin-top:6px;"> <?= h($party['location']) ?> </div>
                 <?php endif; ?>
-                <div class="muted" style="margin-top:6px;"><?= h(__('Max attendees per response:')) ?> <?= h((string)$maxGuests) ?></div>
+                <div class="muted" style="margin-top:6px;"> <?= h(__('Max attendees per response:')) ?> <?= h((string)$maxGuests) ?></div>
+                <div class="muted" style="margin-top:6px;"> <?= h(__('Accent color')) ?>: <?= h($accent) ?></div>
             </div>
             <div style="text-align:right;">
                 <div class="pill success" style="margin-bottom:6px;"> <?= count(array_filter($submissions, fn($s) => (int)$s['attending'] === 1)) ?> <?= h(__('attending')) ?></div>
@@ -63,8 +82,8 @@ render_header(__('Party details') . ' � ' . $party['title']);
     <div class="grid">
         <div class="card">
             <h3 style="margin-top:0;"><?= h(__('Share link')) ?></h3>
-            <code style="background:rgba(255,255,255,0.05); padding:8px 10px; border-radius:8px; display:block; margin-bottom:10px;user-select: all;"> <?= h($shareLink) ?> </code>
             <p class="muted" style="margin-top:0;"><?= h(__('Send this link to guests or print the QR code.')) ?></p>
+            <code style="background:rgba(255,255,255,0.05); padding:8px 10px; border-radius:8px; display:block; margin-top:8px; user-select:all;"> <?= h($shareLink) ?> </code>
         </div>
         <div class="card">
             <h3 style="margin-top:0;">QR</h3>
@@ -72,6 +91,12 @@ render_header(__('Party details') . ' � ' . $party['title']);
                 <img src="<?= h($qrUrl) ?>" alt="QR code to submission form">
             </div>
         </div>
+        <?php if ($headerImg): ?>
+        <div class="card">
+            <h3 style="margin-top:0;"><?= h(__('Header image preview')) ?></h3>
+            <img src="<?= h($headerImg) ?>" alt="Header" style="max-width:100%; border-radius:10px; display:block;">
+        </div>
+        <?php endif; ?>
     </div>
 
     <div class="card">

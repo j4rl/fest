@@ -29,6 +29,16 @@ if (!$party) {
 
 $errors = [];
 $maxGuests = max(1, (int) ($party['max_guests'] ?? 1));
+$accent = $party['theme_accent'] ?: '#f59e0b';
+$headerImg = $party['header_image'] ?? '';
+if (!preg_match('/^#?[0-9a-fA-F]{3,6}$/', $accent)) {
+    $accent = '#f59e0b';
+}
+if ($accent[0] !== '#') {
+    $accent = '#' . $accent;
+}
+$accent = $party['theme_accent'] ?: '#f59e0b';
+$headerImg = $party['header_image'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
@@ -74,12 +84,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 render_header(__('Submit your response') . ' — ' . $party['title']);
+echo '<style>:root{--accent:' . h($accent) . ';}</style>';
 ?>
 <header>
     <h1><?= h(__('Fest Planner')) ?></h1>
     <div class="muted"><?= h(__('You are responding to')) ?> <?= h($party['title']) ?></div>
     <?= lang_switcher() ?>
 </header>
+<?php if ($headerImg): ?>
+    <div class="hero">
+        <img src="<?= h($headerImg) ?>" alt="<?= h($party['title']) ?>">
+        <div class="hero-text">
+            <strong><?= h($party['title']) ?></strong>
+        </div>
+    </div>
+<?php endif; ?>
 <div class="container" style="max-width: 720px;">
     <div class="card">
         <h2 style="margin-top:0;"><?= h($party['title']) ?></h2>

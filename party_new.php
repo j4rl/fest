@@ -15,6 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $eventTime = trim($_POST['event_time'] ?? '');
     $location = trim($_POST['location'] ?? '');
     $maxGuests = max(1, (int) ($_POST['max_guests'] ?? 1));
+    $accent = trim($_POST['theme_accent'] ?? '#f59e0b');
+    if (!preg_match('/^#?[0-9a-fA-F]{3,6}$/', $accent)) {
+        $accent = '#f59e0b';
+    }
+    if ($accent[0] !== '#') {
+        $accent = '#' . $accent;
+    }
+    $headerImg = trim($_POST['header_image'] ?? '');
+    $uploadedHeader = handle_image_upload('header_upload', $errors);
 
     if ($title === '') {
         $errors[] = __('Title is required.');
@@ -31,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $shareCode = randomShareCode();
         }
 
-        $stmt = db_prepare('INSERT INTO parties (user_id, title, description, event_date, event_time, location, share_code, max_guests) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt = db_prepare('INSERT INTO parties (user_id, title, description, event_date, event_time, location, share_code, theme_accent, header_image, max_guests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         db_execute($stmt, [
             $user['id'],
             $title,
@@ -40,6 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $eventTime ?: null,
             $location ?: null,
             $shareCode,
+            $accent ?: null,
+            ($uploadedHeader ?: $headerImg) ?: null,
             $maxGuests,
         ]);
 
@@ -68,7 +79,7 @@ render_header(__('Create a new party'));
                 <?= h(implode(' ', $errors)) ?>
             </div>
         <?php endif; ?>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             <label for="title"> <?= h(__('Title')) ?> *</label>
             <input type="text" id="title" name="title" required value="<?= h($_POST['title'] ?? '') ?>">
 
@@ -91,6 +102,15 @@ render_header(__('Create a new party'));
 
             <label for="max_guests"><?= h(__('Max attendees per submission')) ?></label>
             <input type="number" id="max_guests" name="max_guests" min="1" value="<?= h($_POST['max_guests'] ?? '1') ?>">
+
+            <label for="theme_accent"><?= h(__('Accent color')) ?></label>
+            <input type="color" id="theme_accent" name="theme_accent" value="<?= h($_POST['theme_accent'] ?? '#f59e0b') ?>">
+
+            <label for="header_image"><?= h(__('Header image URL (optional)')) ?></label>
+            <input type="text" id="header_image" name="header_image" placeholder="https://example.com/banner.jpg" value="<?= h($_POST['header_image'] ?? '') ?>">
+
+            <label for="header_upload"><?= h(__('Upload header image')) ?></label>
+            <input type="file" id="header_upload" name="header_upload" accept="image/*">
 
             <button class="btn" type="submit"><?= h(__('Create party')) ?></button>
         </form>

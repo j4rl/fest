@@ -62,6 +62,8 @@ function initializeDatabase(mysqli $db): void
             event_time TIME,
             location VARCHAR(255),
             share_code VARCHAR(32) NOT NULL UNIQUE,
+            theme_accent VARCHAR(20),
+            header_image TEXT,
             max_guests INT NOT NULL DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT fk_parties_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

@@ -25,6 +25,14 @@ $notice = null;
 $maxGuests = max(1, (int) ($party['max_guests'] ?? 1));
 $shareLink = base_url() . 'submit.php?code=' . urlencode($party['share_code']);
 $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' . urlencode($shareLink);
+$accent = $party['theme_accent'] ?: '#f59e0b';
+$headerImg = $party['header_image'] ?? '';
+if (!preg_match('/^#?[0-9a-fA-F]{3,6}$/', $accent)) {
+    $accent = '#f59e0b';
+}
+if ($accent[0] !== '#') {
+    $accent = '#' . $accent;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
@@ -33,13 +41,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $eventTime = trim($_POST['event_time'] ?? '');
     $location = trim($_POST['location'] ?? '');
     $maxGuestsInput = max(1, (int) ($_POST['max_guests'] ?? 1));
+    $accentInput = trim($_POST['theme_accent'] ?? '');
+    $headerImgInput = trim($_POST['header_image'] ?? '');
+    $uploadedHeader = handle_image_upload('header_upload', $errors);
+
+    if (!preg_match('/^#?[0-9a-fA-F]{3,6}$/', $accentInput)) {
+        $accentInput = '#f59e0b';
+    }
+    if ($accentInput !== '' && $accentInput[0] !== '#') {
+        $accentInput = '#' . $accentInput;
+    }
 
     if ($title === '') {
         $errors[] = __('Title is required.');
     }
 
     if (!$errors) {
-        $update = db_prepare('UPDATE parties SET title = ?, description = ?, event_date = ?, event_time = ?, location = ?, max_guests = ? WHERE id = ? AND user_id = ?');
+        $update = db_prepare('UPDATE parties SET title = ?, description = ?, event_date = ?, event_time = ?, location = ?, max_guests = ?, theme_accent = ?, header_image = ? WHERE id = ? AND user_id = ?');
         db_execute($update, [
             $title,
             $description,
@@ -47,6 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $eventTime ?: null,
             $location ?: null,
             $maxGuestsInput,
+            $accentInput ?: null,
+            ($uploadedHeader ?: $headerImgInput) ?: null,
             $party['id'],
             $user['id'],
         ]);
@@ -55,10 +75,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db_execute($partyStmt, [$id, $user['id']]);
         $party = db_fetch_one($partyStmt);
         $maxGuests = max(1, (int) ($party['max_guests'] ?? 1));
+        $accent = $party['theme_accent'] ?: '#f59e0b';
+        $headerImg = $party['header_image'] ?? '';
     }
 }
 
-render_header(__('Edit party') . ' — ' . $party['title']);
+render_header(__('Edit party') . ' â€” ' . $party['title']);
 ?>
 <header>
     <h1><?= h(__('Fest Planner')) ?></h1>
@@ -79,6 +101,7 @@ render_header(__('Edit party') . ' — ' . $party['title']);
                     <div style="margin-top:6px;"> <?= h($party['location']) ?> </div>
                 <?php endif; ?>
                 <div class="muted" style="margin-top:6px;"> <?= h(__('Max attendees per response:')) ?> <?= h((string)$maxGuests) ?></div>
+                <div class="muted" style="margin-top:6px;"> <?= h(__('Accent color')) ?>: <?= h($accent ?: '#f59e0b') ?></div>
             </div>
             <div style="text-align:right;">
                 <div class="pill" style="background:#334155; color:#e5e7eb;"><?= h(__('Share link')) ?> &amp; QR</div>
@@ -88,16 +111,18 @@ render_header(__('Edit party') . ' — ' . $party['title']);
 
     <div class="grid">
         <div class="card">
-            <h3 style="margin-top:0;"><?= h(__('Share link')) ?></h3>
-            <code style="background:rgba(255,255,255,0.05); padding:8px 10px; border-radius:8px; display:block; margin-bottom:10px;"> <?= h($shareLink) ?> </code>
-            <p class="muted" style="margin-top:0;"><?= h(__('Send this link to guests or print the QR code.')) ?></p>
-        </div>
-        <div class="card">
             <h3 style="margin-top:0;">QR</h3>
             <div class="qr">
                 <img src="<?= h($qrUrl) ?>" alt="QR code to submission form">
             </div>
+            <div class="muted" style="margin-top:8px; word-break:break-all; font-size:12px;"> <?= h($shareLink) ?> </div>
         </div>
+        <?php if ($headerImg): ?>
+        <div class="card">
+            <h3 style="margin-top:0;"><?= h(__('Header image preview')) ?></h3>
+            <img src="<?= h($headerImg) ?>" alt="Header" style="max-width:100%; border-radius:10px; display:block;">
+        </div>
+        <?php endif; ?>
     </div>
 
     <div class="card">
@@ -108,7 +133,7 @@ render_header(__('Edit party') . ' — ' . $party['title']);
         <?php if ($errors): ?>
             <div class="danger-block"><?= h(implode(' ', $errors)) ?></div>
         <?php endif; ?>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             <label for="title"><?= h(__('Title')) ?> *</label>
             <input type="text" id="title" name="title" required value="<?= h($_POST['title'] ?? $party['title']) ?>">
 
@@ -131,6 +156,15 @@ render_header(__('Edit party') . ' — ' . $party['title']);
 
             <label for="max_guests"><?= h(__('Max attendees per submission')) ?></label>
             <input type="number" id="max_guests" name="max_guests" min="1" value="<?= h($_POST['max_guests'] ?? $party['max_guests']) ?>">
+
+            <label for="theme_accent"><?= h(__('Accent color')) ?></label>
+            <input type="color" id="theme_accent" name="theme_accent" value="<?= h($_POST['theme_accent'] ?? $accent) ?>">
+
+            <label for="header_image"><?= h(__('Header image URL (optional)')) ?></label>
+            <input type="text" id="header_image" name="header_image" placeholder="https://example.com/banner.jpg" value="<?= h($_POST['header_image'] ?? $headerImg) ?>">
+
+            <label for="header_upload"><?= h(__('Upload header image')) ?></label>
+            <input type="file" id="header_upload" name="header_upload" accept="image/*">
 
             <button class="btn" type="submit"><?= h(__('Save changes')) ?></button>
         </form>
