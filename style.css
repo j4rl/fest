@@ -176,3 +176,8 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     z-index: 2;
     text-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
+.hero-text{
+    font-size: 5rem;
+    font-weight: 700;
+    text-shadow: 5px 5px 15px rgba(0,0,0,0.6);
+}

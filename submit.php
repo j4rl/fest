@@ -44,7 +44,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $attending = (int) ($_POST['attending'] ?? 1);
-    $guestsInput = (int) ($_POST['guests'] ?? 1);
+    if ($maxGuests > 1) {
+        $extras = (int) ($_POST['extras'] ?? 0);
+        $extras = max(0, $extras);
+        $guestsInput = 1 + $extras;
+    } else {
+        $extras = 0;
+        $guestsInput = 1;
+    }
     $foodPref = trim($_POST['food_pref'] ?? '');
     $message = trim($_POST['message'] ?? '');
 
@@ -132,8 +139,12 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
                 <label><input type="radio" name="attending" value="0" <?= (isset($_POST['attending']) && $_POST['attending'] == '0') ? 'checked' : '' ?>> <?= h(__('No')) ?></label>
             </div>
 
-            <label for="guests"><?= h(__('How many people (including you)?')) ?> (max <?= h((string)$maxGuests) ?>)</label>
-            <input type="number" id="guests" name="guests" min="1" max="<?= h((string)$maxGuests) ?>" value="<?= h(isset($_POST['guests']) ? min($maxGuests, max(1, (int)$_POST['guests'])) : '1') ?>">
+            <?php if ($maxGuests > 1): ?>
+            <label for="extras"><?= h(__('How many besides you are coming?')) ?> (max <?= h((string)($maxGuests - 1)) ?>)</label>
+            <input type="number" id="extras" name="extras" min="0" max="<?= h((string)($maxGuests - 1)) ?>" value="<?= h(isset($_POST['extras']) ? min($maxGuests - 1, max(0, (int)$_POST['extras'])) : '0') ?>">
+            <?php else: ?>
+            <input type="hidden" name="extras" value="0">
+            <?php endif; ?>
 
             <label for="food_pref"><?= h(__('Food preferences / allergies')) ?></label>
             <textarea id="food_pref" name="food_pref" placeholder="e.g., vegetarian, no nuts"><?= h($_POST['food_pref'] ?? '') ?></textarea>

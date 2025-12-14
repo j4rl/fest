@@ -98,6 +98,7 @@ function translations(): array
             'Guest count must be at least 1.' => 'Antalet gäster måste vara minst 1.',
             'You are responding to' => 'Du svarar på',
             'Add anything else' => 'Lägg till annat',
+            'How many besides you are coming?' => 'Hur många förutom dig kommer?',
             'RSVP received' => 'Svar mottaget',
             'to' => 'till',
             'If you need to make changes, contact the host directly.' => 'Kontakta värden direkt om du behöver ändra något.',
