@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-render_header(__('Edit party') . ' — ' . $party['title']);
+render_header(__('Edit party') . ' - ' . $party['title']);
 ?>
 <header>
     <h1><?= h(__('Fest Planner')) ?></h1>
@@ -96,7 +96,7 @@ render_header(__('Edit party') . ' — ' . $party['title']);
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
             <div>
                 <h2 style="margin:0;"> <?= h($party['title']) ?> </h2>
-                <div class="muted" style="margin-top:4px;"> <?= h($party['event_date'] ?: 'Date TBD') ?> | <?= h($party['event_time'] ?: 'Time TBD') ?> </div>
+                <div class="muted" style="margin-top:4px;"> <?= h($party['event_date'] ?: __('Date TBD')) ?> | <?= h($party['event_time'] ?: __('Time TBD')) ?> </div>
                 <?php if ($party['location']): ?>
                     <div style="margin-top:6px;"> <?= h($party['location']) ?> </div>
                 <?php endif; ?>

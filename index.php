@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-render_header(__('Fest Planner') . ' — ' . __('Log in'));
+render_header(__('Fest Planner') . ' - ' . __('Log in'));
 ?>
 <header>
     <h1><?= h(__('Fest Planner')) ?></h1>

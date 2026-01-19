@@ -102,6 +102,9 @@ function translations(): array
             'RSVP received' => 'Svar mottaget',
             'to' => 'till',
             'If you need to make changes, contact the host directly.' => 'Kontakta värden direkt om du behöver ändra något.',
+            'Date TBD' => 'Datum ej bestämt',
+            'Time TBD' => 'Tid ej bestämd',
+            'Language' => 'Språk',
         ],
     ];
 }
@@ -150,5 +153,5 @@ function lang_switcher(): string
             $parts[] = '<a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" class="muted">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</a>';
         }
     }
-    return '<div class="muted">Language: ' . implode(' | ', $parts) . '</div>';
+    return '<div class="muted">' . htmlspecialchars(__('Language'), ENT_QUOTES, 'UTF-8') . ': ' . implode(' | ', $parts) . '</div>';
 }
