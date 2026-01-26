@@ -55,7 +55,7 @@ render_header(__('Your parties'));
                         <div>
                             <h3 style="margin:0; font-size:17px;"> <?= h($party['title']) ?> </h3>
                             <div class="muted" style="font-size:13px;">
-                                <?= h($party['event_date'] ?: 'Date TBD') ?> | <?= h($party['event_time'] ?: 'Time TBD') ?>
+                                <?= h($party['event_date'] ?: __('Date TBD')) ?> | <?= h($party['event_time'] ?: __('Time TBD')) ?>
                             </div>
                         </div>
                         <a class="btn secondary" href="party_edit.php?id=<?= (int)$party['id'] ?>"><?= h(__('Open')) ?></a>

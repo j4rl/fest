@@ -9,9 +9,10 @@ function render_header(string $title = 'Fest Planner'): void
         header('Content-Type: text/html; charset=utf-8');
     }
     $escaped = htmlspecialchars(__($title), ENT_QUOTES, 'UTF-8');
+    $lang = htmlspecialchars(current_lang(), ENT_QUOTES, 'UTF-8');
     echo <<<HTML
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{$lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

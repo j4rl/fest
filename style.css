@@ -187,6 +187,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     header { flex-direction: column; align-items: flex-start; gap: 10px; position: static; }
     .container { padding: 16px; }
     .btn { width: 100%; justify-content: center; }
+    .hero-text { font-size: 2.2rem; }
 }
 
 .hero {

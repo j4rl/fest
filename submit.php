@@ -37,20 +37,23 @@ if (!preg_match('/^#?[0-9a-fA-F]{3,6}$/', $accent)) {
 if ($accent[0] !== '#') {
     $accent = '#' . $accent;
 }
-$accent = $party['theme_accent'] ?: '#f59e0b';
-$headerImg = $party['header_image'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    $attending = (int) ($_POST['attending'] ?? 1);
-    if ($maxGuests > 1) {
-        $extras = (int) ($_POST['extras'] ?? 0);
-        $extras = max(0, $extras);
-        $guestsInput = 1 + $extras;
+    $attending = ($_POST['attending'] ?? '1') === '1' ? 1 : 0;
+    if ($attending === 1) {
+        if ($maxGuests > 1) {
+            $extras = (int) ($_POST['extras'] ?? 0);
+            $extras = max(0, $extras);
+            $guestsInput = 1 + $extras;
+        } else {
+            $extras = 0;
+            $guestsInput = 1;
+        }
     } else {
         $extras = 0;
-        $guestsInput = 1;
+        $guestsInput = 0;
     }
     $foodPref = trim($_POST['food_pref'] ?? '');
     $message = trim($_POST['message'] ?? '');
@@ -58,10 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($name === '') {
         $errors[] = __('Please add your name.');
     }
-    if ($guestsInput < 1) {
+    if ($attending === 1 && $guestsInput < 1) {
         $errors[] = __('Guest count must be at least 1.');
     }
-    if ($guestsInput > $maxGuests) {
+    if ($attending === 1 && $guestsInput > $maxGuests) {
         $errors[] = __('This party allows up to %d people per submission.', $maxGuests);
     }
 
@@ -90,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-render_header(__('Submit your response') . ' — ' . $party['title']);
+render_header(__('Submit your response') . ' - ' . $party['title']);
 echo '<style>:root{--accent:' . h($accent) . ';}</style>';
 ?>
 <header>
@@ -109,7 +112,7 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
 <div class="container" style="max-width: 720px;">
     <div class="card">
         <h2 style="margin-top:0;"><?= h($party['title']) ?></h2>
-        <div class="muted"><?= h($party['event_date'] ?: 'Date TBD') ?> | <?= h($party['event_time'] ?: 'Time TBD') ?></div>
+        <div class="muted"><?= h($party['event_date'] ?: __('Date TBD')) ?> | <?= h($party['event_time'] ?: __('Time TBD')) ?></div>
         <?php if ($party['location']): ?>
             <div style="margin-top:6px;"><?= h($party['location']) ?></div>
         <?php endif; ?>
