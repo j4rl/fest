@@ -109,31 +109,18 @@ render_header(__('Edit party') . ' — ' . $party['title']);
         </div>
     </div>
 
-    <div class="grid">
-        <div class="card">
-            <h3 style="margin-top:0;">QR</h3>
-            <div class="qr">
-                <img src="<?= h($qrUrl) ?>" alt="QR code to submission form">
-            </div>
-            <div class="muted" style="margin-top:8px; word-break:break-all; font-size:12px;"> <?= h($shareLink) ?> </div>
-        </div>
-        <?php if ($headerImg): ?>
-        <div class="card">
-            <h3 style="margin-top:0;"><?= h(__('Header image preview')) ?></h3>
-            <img src="<?= h($headerImg) ?>" alt="Header" style="max-width:100%; border-radius:10px; display:block;">
-        </div>
-        <?php endif; ?>
-    </div>
-
     <div class="card">
-        <h3 style="margin-top:0;"><?= h(__('Edit party details')) ?></h3>
-        <?php if ($notice): ?>
-            <div class="notice"><?= h($notice) ?></div>
-        <?php endif; ?>
-        <?php if ($errors): ?>
-            <div class="danger-block"><?= h(implode(' ', $errors)) ?></div>
-        <?php endif; ?>
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="party-edit-form">
+            <div class="form-header">
+                <h3 style="margin:0;"><?= h(__('Edit party details')) ?></h3>
+                <button class="btn" type="submit"><?= h(__('Save changes')) ?></button>
+            </div>
+            <?php if ($notice): ?>
+                <div class="notice"><?= h($notice) ?></div>
+            <?php endif; ?>
+            <?php if ($errors): ?>
+                <div class="danger-block"><?= h(implode(' ', $errors)) ?></div>
+            <?php endif; ?>
             <label for="title"><?= h(__('Title')) ?> *</label>
             <input type="text" id="title" name="title" required value="<?= h($_POST['title'] ?? $party['title']) ?>">
 
@@ -158,16 +145,72 @@ render_header(__('Edit party') . ' — ' . $party['title']);
             <input type="number" id="max_guests" name="max_guests" min="1" value="<?= h($_POST['max_guests'] ?? $party['max_guests']) ?>">
 
             <label for="theme_accent"><?= h(__('Accent color')) ?></label>
-            <input type="color" id="theme_accent" name="theme_accent" value="<?= h($_POST['theme_accent'] ?? $accent) ?>">
+            <div class="color-field">
+                <input type="color" id="theme_accent" name="theme_accent" value="<?= h($_POST['theme_accent'] ?? $accent) ?>">
+                <input type="text" id="theme_accent_text" value="<?= h($_POST['theme_accent'] ?? $accent) ?>" placeholder="#f59e0b" maxlength="7" spellcheck="false" inputmode="text" aria-label="Accent color hex">
+            </div>
+            <div class="field-help"><?= h(__('Used for buttons and highlights.')) ?></div>
 
             <label for="header_image"><?= h(__('Header image URL (optional)')) ?></label>
             <input type="text" id="header_image" name="header_image" placeholder="https://example.com/banner.jpg" value="<?= h($_POST['header_image'] ?? $headerImg) ?>">
+            <div class="field-help"><?= h(__('Paste a URL or upload a file below.')) ?></div>
 
             <label for="header_upload"><?= h(__('Upload header image')) ?></label>
             <input type="file" id="header_upload" name="header_upload" accept="image/*">
+            <div class="field-help"><?= h(__('Uploads are stored on this server and override the URL.')) ?></div>
 
-            <button class="btn" type="submit"><?= h(__('Save changes')) ?></button>
+            <div class="form-actions">
+                <button class="btn" type="submit"><?= h(__('Save changes')) ?></button>
+            </div>
         </form>
     </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3 style="margin-top:0;">QR</h3>
+            <div class="qr">
+                <img src="<?= h($qrUrl) ?>" alt="QR code to submission form">
+            </div>
+            <div class="muted" style="margin-top:8px; word-break:break-all; font-size:12px;"> <?= h($shareLink) ?> </div>
+        </div>
+        <?php if ($headerImg): ?>
+        <div class="card">
+            <h3 style="margin-top:0;"><?= h(__('Header image preview')) ?></h3>
+            <img src="<?= h($headerImg) ?>" alt="Header" style="max-width:100%; border-radius:10px; display:block;">
+        </div>
+        <?php endif; ?>
+    </div>
 </div>
+<script>
+(() => {
+    const colorInput = document.getElementById('theme_accent');
+    const textInput = document.getElementById('theme_accent_text');
+    if (!colorInput || !textInput) {
+        return;
+    }
+
+    const normalize = (value) => {
+        const trimmed = value.trim();
+        if (!/^#?[0-9a-fA-F]{3,6}$/.test(trimmed)) {
+            return null;
+        }
+        return trimmed[0] === '#' ? trimmed : `#${trimmed}`;
+    };
+
+    const syncFromColor = () => {
+        textInput.value = colorInput.value;
+    };
+
+    const syncFromText = () => {
+        const normalized = normalize(textInput.value);
+        if (normalized) {
+            colorInput.value = normalized;
+        }
+    };
+
+    colorInput.addEventListener('input', syncFromColor);
+    textInput.addEventListener('input', syncFromText);
+    syncFromColor();
+})();
+</script>
 <?php render_footer(); ?>
