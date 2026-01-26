@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description'] ?? '');
     $eventDate = trim($_POST['event_date'] ?? '');
     $eventTime = trim($_POST['event_time'] ?? '');
+    $applyDeadline = trim($_POST['apply_deadline'] ?? '');
     $location = trim($_POST['location'] ?? '');
     $maxGuests = max(1, (int) ($_POST['max_guests'] ?? 1));
     $accent = trim($_POST['theme_accent'] ?? '#f59e0b');
@@ -40,13 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $shareCode = randomShareCode();
         }
 
-        $stmt = db_prepare('INSERT INTO parties (user_id, title, description, event_date, event_time, location, share_code, theme_accent, header_image, max_guests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt = db_prepare('INSERT INTO parties (user_id, title, description, event_date, event_time, apply_deadline, location, share_code, theme_accent, header_image, max_guests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         db_execute($stmt, [
             $user['id'],
             $title,
             $description,
             $eventDate ?: null,
             $eventTime ?: null,
+            $applyDeadline ?: null,
             $location ?: null,
             $shareCode,
             $accent ?: null,
@@ -94,6 +96,10 @@ render_header(__('Create a new party'));
                 <div>
                     <label for="event_time"><?= h(__('Time')) ?></label>
                     <input type="time" id="event_time" name="event_time" value="<?= h($_POST['event_time'] ?? '') ?>">
+                </div>
+                <div>
+                    <label for="apply_deadline"><?= h(__('Last date to apply')) ?></label>
+                    <input type="date" id="apply_deadline" name="apply_deadline" value="<?= h($_POST['apply_deadline'] ?? '') ?>">
                 </div>
             </div>
 

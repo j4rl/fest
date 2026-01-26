@@ -48,6 +48,8 @@ function initializeDatabase(mysqli $db): void
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(150) NOT NULL UNIQUE,
             password_hash VARCHAR(255) NOT NULL,
+            is_admin TINYINT(1) NOT NULL DEFAULT 0,
+            is_approved TINYINT(1) NOT NULL DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
     );
@@ -65,6 +67,8 @@ function initializeDatabase(mysqli $db): void
             theme_accent VARCHAR(20),
             header_image TEXT,
             max_guests INT NOT NULL DEFAULT 1,
+            apply_deadline DATE,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT fk_parties_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
@@ -94,8 +98,8 @@ function seedDefaultUser(mysqli $db): void
     $row = $result ? $result->fetch_assoc() : ['c' => 0];
     $count = (int) ($row['c'] ?? 0);
     if ($count === 0) {
-        $stmt = db_prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-        db_execute($stmt, ['admin', password_hash('admin123', PASSWORD_DEFAULT)]);
+        $stmt = db_prepare('INSERT INTO users (username, password_hash, is_admin, is_approved) VALUES (?, ?, ?, ?)');
+        db_execute($stmt, ['admin', password_hash('admin123', PASSWORD_DEFAULT), 1, 1]);
     }
 }
 

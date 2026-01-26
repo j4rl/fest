@@ -7,18 +7,28 @@ require_once __DIR__ . '/helpers.php';
 
 $user = require_login();
 
-$stmt = db_prepare(
-    'SELECT p.*,
+$isAdmin = (int) ($user['is_admin'] ?? 0) === 1;
+$sql = 'SELECT p.*,
         COUNT(s.id) AS submission_count,
         SUM(CASE WHEN s.attending = 1 THEN 1 ELSE 0 END) AS attending_count
      FROM parties p
-     LEFT JOIN submissions s ON s.party_id = p.id
-     WHERE p.user_id = ?
-     GROUP BY p.id
-     ORDER BY p.created_at DESC'
-);
-db_execute($stmt, [$user['id']]);
+     LEFT JOIN submissions s ON s.party_id = p.id';
+$params = [];
+if (!$isAdmin) {
+    $sql .= ' WHERE p.user_id = ?';
+    $params[] = $user['id'];
+}
+$sql .= ' GROUP BY p.id ORDER BY p.created_at DESC';
+$stmt = db_prepare($sql);
+db_execute($stmt, $params);
 $parties = db_fetch_all($stmt);
+
+$pendingCount = 0;
+if ($isAdmin) {
+    $pendingStmt = db_prepare('SELECT COUNT(*) FROM users WHERE is_approved = 0 AND is_admin = 0');
+    db_execute($pendingStmt);
+    $pendingCount = (int) db_fetch_column($pendingStmt);
+}
 
 render_header(__('Your parties'));
 ?>
@@ -27,6 +37,14 @@ render_header(__('Your parties'));
     <div style="display:flex; align-items:center; gap:10px;">
         <div class="muted"><?= h(__('Signed in as')) ?> <?= h($user['username']) ?></div>
         <?= lang_switcher() ?>
+        <?php if ($isAdmin): ?>
+            <a class="btn secondary" href="admin_users.php">
+                <?= h(__('User approvals')) ?>
+                <?php if ($pendingCount > 0): ?>
+                    <span class="pill" style="background:#f59e0b; color:#0f172a;"><?= (int) $pendingCount ?></span>
+                <?php endif; ?>
+            </a>
+        <?php endif; ?>
         <a class="btn secondary" href="logout.php"><?= h(__('Log out')) ?></a>
     </div>
 </header>

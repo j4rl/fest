@@ -12,10 +12,17 @@ function current_user(): ?array
     if (!isset($_SESSION['user_id'])) {
         return null;
     }
-    $stmt = db_prepare('SELECT id, username FROM users WHERE id = ?');
+    $stmt = db_prepare('SELECT id, username, is_admin, is_approved FROM users WHERE id = ?');
     db_execute($stmt, [$_SESSION['user_id']]);
     $user = db_fetch_one($stmt);
-    return $user ?: null;
+    if (!$user) {
+        return null;
+    }
+    if ((int) ($user['is_approved'] ?? 0) !== 1 && (int) ($user['is_admin'] ?? 0) !== 1) {
+        logout();
+        return null;
+    }
+    return $user;
 }
 
 function require_login(): array
@@ -28,16 +35,21 @@ function require_login(): array
     return $user;
 }
 
-function attempt_login(string $username, string $password): bool
+function attempt_login(string $username, string $password): string
 {
-    $stmt = db_prepare('SELECT id, password_hash FROM users WHERE username = ?');
+    $stmt = db_prepare('SELECT id, password_hash, is_admin, is_approved FROM users WHERE username = ?');
     db_execute($stmt, [$username]);
     $user = db_fetch_one($stmt);
     if ($user && password_verify($password, $user['password_hash'])) {
+        $isAdmin = (int) ($user['is_admin'] ?? 0) === 1;
+        $isApproved = (int) ($user['is_approved'] ?? 0) === 1;
+        if (!$isAdmin && !$isApproved) {
+            return 'pending';
+        }
         $_SESSION['user_id'] = (int) $user['id'];
-        return true;
+        return 'ok';
     }
-    return false;
+    return 'invalid';
 }
 
 function logout(): void

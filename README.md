@@ -4,6 +4,8 @@ Simple PHP + MySQL (MySQLi) app to manage parties, collect RSVPs, and track food
 
 ## Features
 - Login for existing users (seeded admin: `admin` / `admin123`)
+- Request access flow for new users with admin approval
+- Main admin can manage all parties and approve users
 - Create parties with title, description, date/time, and location
 - Shareable invite link and QR code for each party
 - Guests submit attendance (yes/no), guest count, food preferences, and a note
@@ -21,8 +23,12 @@ Simple PHP + MySQL (MySQLi) app to manage parties, collect RSVPs, and track food
 5. Load the site in your browser; the app will create the database/tables if missing and seed `admin/admin123`.
 6. If you already had an older database, run the migrations to add new columns:  
    `mysql -u <user> -p <database> < migrations/001_add_max_guests.sql`  
-   `mysql -u <user> -p <database> < migrations/002_add_theme_fields.sql`
+   `mysql -u <user> -p <database> < migrations/002_add_theme_fields.sql`  
+   `mysql -u <user> -p <database> < migrations/003_add_apply_deadline.sql`  
+   `mysql -u <user> -p <database> < migrations/004_add_party_status.sql`  
+   `mysql -u <user> -p <database> < migrations/005_add_user_flags.sql`
 7. Log in, create a party, choose an accent color/header image, and share the generated invite link or QR. Switch language with the EN/SV toggle in the header.
+8. New users can request access on the login page; approve them under "User approvals".
 
 > Change the default admin password after first login by updating the `users` table in your MySQL database.
 > QR codes are generated via `https://api.qrserver.com`, so outbound access is required to display them.

@@ -16,12 +16,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = (string) ($_POST['password'] ?? '');
     if ($username === '' || $password === '') {
         $error = __('Please enter both username and password.');
-    } elseif (attempt_login($username, $password)) {
-        header('Location: dashboard.php');
-        exit;
     } else {
-        $error = __('Invalid credentials.');
-    }
+        $status = attempt_login($username, $password);
+        if ($status === 'ok') {
+            header('Location: dashboard.php');
+            exit;
+        }
+        if ($status === 'pending') {
+            $error = __('Your account is pending approval.');
+        } else {
+            $error = __('Invalid credentials.');
+        }
 }
 
 render_header(__('Fest Planner') . ' - ' . __('Log in'));
@@ -47,6 +52,7 @@ render_header(__('Fest Planner') . ' - ' . __('Log in'));
 
             <button class="btn" type="submit"><?= h(__('Log in')) ?></button>
         </form>
+        <p class="muted" style="margin-top: 12px;"><?= h(__('Need an account?')) ?> <a class="muted" href="register.php"><?= h(__('Request access')) ?></a></p>
         <p class="muted" style="margin-top: 12px;"><?= h(__('Default admin login:')) ?> <strong>admin / admin123</strong>. <?= h(__('Change it in the database after first login.')) ?></p>
     </div>
 </div>

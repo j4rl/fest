@@ -7,9 +7,16 @@ require_once __DIR__ . '/helpers.php';
 
 $user = require_login();
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$isAdmin = (int) ($user['is_admin'] ?? 0) === 1;
 
-$partyStmt = db_prepare('SELECT * FROM parties WHERE id = ? AND user_id = ?');
-db_execute($partyStmt, [$id, $user['id']]);
+$partySql = 'SELECT * FROM parties WHERE id = ?';
+$partyParams = [$id];
+if (!$isAdmin) {
+    $partySql .= ' AND user_id = ?';
+    $partyParams[] = $user['id'];
+}
+$partyStmt = db_prepare($partySql);
+db_execute($partyStmt, $partyParams);
 $party = db_fetch_one($partyStmt);
 
 if (!$party) {
@@ -23,10 +30,16 @@ if (!$party) {
 $submissionsStmt = db_prepare('SELECT * FROM submissions WHERE party_id = ? ORDER BY created_at DESC');
 db_execute($submissionsStmt, [$party['id']]);
 $submissions = db_fetch_all($submissionsStmt);
+$attendingSubmissions = array_values(array_filter($submissions, fn($s) => (int)$s['attending'] === 1));
 
 $shareLink = base_url() . 'submit.php?code=' . urlencode($party['share_code']);
 $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' . urlencode($shareLink);
 $maxGuests = max(1, (int) ($party['max_guests'] ?? 1));
+$applyDeadline = $party['apply_deadline'] ?? '';
+$isActive = (int) ($party['is_active'] ?? 1);
+$today = date('Y-m-d');
+$deadlinePassed = $applyDeadline !== '' && $today > $applyDeadline;
+$isClosed = $isActive !== 1 || $deadlinePassed;
 $accent = $party['theme_accent'] ?: '#f59e0b';
 $headerImg = $party['header_image'] ?? '';
 if (!preg_match('/^#?[0-9a-fA-F]{3,6}$/', $accent)) {
@@ -45,6 +58,7 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
         <a class="btn secondary" href="dashboard.php"><?= h(__('Dashboard')) ?></a>
         <a class="btn secondary" href="party_edit.php?id=<?= (int)$party['id'] ?>"><?= h(__('Open (edit)')) ?></a>
         <a class="btn secondary" href="logout.php"><?= h(__('Log out')) ?></a>
+        <button class="btn secondary no-print" type="button" onclick="window.print()"><?= h(__('Print participant list')) ?></button>
         <?= lang_switcher() ?>
     </div>
 </header>
@@ -66,12 +80,18 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
                 <?php if ($party['location']): ?>
                     <div style="margin-top:6px;"> <?= h($party['location']) ?> </div>
                 <?php endif; ?>
+                <?php if ($applyDeadline): ?>
+                    <div class="muted" style="margin-top:6px;"> <?= h(__('Last date to apply')) ?>: <?= h($applyDeadline) ?> </div>
+                <?php endif; ?>
                 <div class="muted" style="margin-top:6px;"> <?= h(__('Max attendees per response:')) ?> <?= h((string)$maxGuests) ?></div>
                 <div class="muted" style="margin-top:6px;"> <?= h(__('Accent color')) ?>: <?= h($accent) ?></div>
             </div>
             <div style="text-align:right;">
                 <div class="pill success" style="margin-bottom:6px;"> <?= count(array_filter($submissions, fn($s) => (int)$s['attending'] === 1)) ?> <?= h(__('attending')) ?></div>
                 <div class="pill" style="background:#334155; color:#e5e7eb;"> <?= count($submissions) ?> <?= h(__('responses')) ?></div>
+                <?php if ($isClosed): ?>
+                    <div class="pill danger" style="margin-top:6px;"><?= h(__('Responses closed')) ?></div>
+                <?php endif; ?>
             </div>
         </div>
         <?php if ($party['description']): ?>
@@ -100,7 +120,10 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
     </div>
 
     <div class="card">
-        <h3 style="margin-top:0;"><?= h(__('People')) ?></h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+            <h3 style="margin:0;"><?= h(__('People')) ?></h3>
+            <button class="btn secondary no-print" type="button" onclick="window.print()"><?= h(__('Print participant list')) ?></button>
+        </div>
         <?php if (!$submissions): ?>
             <p class="muted"><?= h(__('No responses yet.')) ?></p>
         <?php else: ?>
@@ -115,6 +138,35 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
                     </li>
                 <?php endforeach; ?>
             </ul>
+        <?php endif; ?>
+    </div>
+
+    <div class="card print-only">
+        <h2 style="margin-top:0;"><?= h(__('Participant list')) ?></h2>
+        <div class="muted" style="margin-bottom:10px;">
+            <?= h($party['title']) ?><?php if ($party['event_date']): ?> | <?= h($party['event_date']) ?><?php endif; ?>
+        </div>
+        <?php if (!$attendingSubmissions): ?>
+            <p><?= h(__('No participants yet.')) ?></p>
+        <?php else: ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th><?= h(__('Name')) ?></th>
+                        <th><?= h(__('Email')) ?></th>
+                        <th><?= h(__('Guests')) ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($attendingSubmissions as $submission): ?>
+                        <tr>
+                            <td><?= h($submission['name']) ?></td>
+                            <td><?= h($submission['email']) ?></td>
+                            <td><?= (int) $submission['guests'] ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         <?php endif; ?>
     </div>
 

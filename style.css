@@ -183,6 +183,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     border-radius: 10px;
     color: #fecdd3;
 }
+.print-only { display: none; }
 @media (max-width: 720px) {
     header { flex-direction: column; align-items: flex-start; gap: 10px; position: static; }
     .container { padding: 16px; }
@@ -222,4 +223,33 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     font-size: 5rem;
     font-weight: 700;
     text-shadow: 5px 5px 15px rgba(0,0,0,0.6);
+}
+
+@media print {
+    body {
+        background: #ffffff;
+        color: #111111;
+    }
+    body * {
+        visibility: hidden;
+    }
+    .print-only, .print-only * {
+        visibility: visible;
+    }
+    .print-only {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .card {
+        background: #ffffff;
+        border: 1px solid #dddddd;
+        box-shadow: none;
+    }
+    th, td {
+        border-bottom: 1px solid #dddddd;
+        color: #111111;
+    }
+    .muted { color: #555555; }
 }
