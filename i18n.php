@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 declare(strict_types=1);
 
 // Lightweight i18n helper with session-based language selection.
