@@ -31,6 +31,8 @@ $submissionsStmt = db_prepare('SELECT * FROM submissions WHERE party_id = ? ORDE
 db_execute($submissionsStmt, [$party['id']]);
 $submissions = db_fetch_all($submissionsStmt);
 $attendingSubmissions = array_values(array_filter($submissions, fn($s) => (int)$s['attending'] === 1));
+$declinedSubmissions = array_values(array_filter($submissions, fn($s) => (int)$s['attending'] !== 1));
+$foodOnlySubmissions = array_values(array_filter($submissions, fn($s) => trim((string)($s['food_pref'] ?? '')) !== ''));
 
 $shareLink = base_url() . 'submit.php?code=' . urlencode($party['share_code']);
 $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' . urlencode($shareLink);
@@ -58,7 +60,7 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
         <a class="btn secondary" href="dashboard.php"><?= h(__('Dashboard')) ?></a>
         <a class="btn secondary" href="party_edit.php?id=<?= (int)$party['id'] ?>"><?= h(__('Open (edit)')) ?></a>
         <a class="btn secondary" href="logout.php"><?= h(__('Log out')) ?></a>
-        <button class="btn secondary no-print" type="button" onclick="window.print()"><?= h(__('Print participant list')) ?></button>
+        <button class="btn secondary no-print" type="button" onclick="printAllLists()"><?= h(__('Print participant list')) ?></button>
         <?= lang_switcher() ?>
     </div>
 </header>
@@ -121,24 +123,73 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
 
     <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-            <h3 style="margin:0;"><?= h(__('People')) ?></h3>
-            <button class="btn secondary no-print" type="button" onclick="window.print()"><?= h(__('Print participant list')) ?></button>
+            <h3 style="margin:0;"><?= h(__('Participant list')) ?></h3>
+            <button class="btn secondary no-print" type="button" onclick="printAllLists()"><?= h(__('Print participant list')) ?></button>
         </div>
-        <?php if (!$submissions): ?>
-            <p class="muted"><?= h(__('No responses yet.')) ?></p>
-        <?php else: ?>
-            <ul>
-                <?php foreach ($submissions as $submission): ?>
-                    <li>
-                        <?= h($submission['name']) ?>
-                        <?php if (!empty($submission['email'])): ?>
-                            <span class="muted">(<?= h($submission['email']) ?>)</span>
-                        <?php endif; ?>
-                        - <?= (int)$submission['attending'] === 1 ? h(__('Attending')) : h(__('Not attending')) ?>, <?= (int)$submission['guests'] ?> <?= h(__('guest(s)')) ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
+        <div class="no-print" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+            <button class="btn secondary" type="button" onclick="printList('attending')"><?= h(__('Print attending list')) ?></button>
+            <button class="btn secondary" type="button" onclick="printList('declined')"><?= h(__('Print declined list')) ?></button>
+            <button class="btn secondary" type="button" onclick="printList('food')"><?= h(__('Print food preference list')) ?></button>
+        </div>
+        <div class="list-columns">
+            <section class="list-block">
+                <h4><?= h(__('Attending')) ?></h4>
+                <?php if (!$attendingSubmissions): ?>
+                    <p class="muted"><?= h(__('No participants yet.')) ?></p>
+                <?php else: ?>
+                    <ul class="check-list">
+                        <?php foreach ($attendingSubmissions as $submission): ?>
+                            <?php $email = trim((string)($submission['email'] ?? '')); ?>
+                            <li>
+                                <span class="check-box" aria-hidden="true"></span>
+                                <?php if ($email !== ''): ?>
+                                    <a href="mailto:<?= h($email) ?>"><?= h($submission['name']) ?></a>
+                                <?php else: ?>
+                                    <?= h($submission['name']) ?>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </section>
+
+            <section class="list-block">
+                <h4><?= h(__('Not attending')) ?></h4>
+                <?php if (!$declinedSubmissions): ?>
+                    <p class="muted"><?= h(__('No declined responses yet.')) ?></p>
+                <?php else: ?>
+                    <ul class="check-list">
+                        <?php foreach ($declinedSubmissions as $submission): ?>
+                            <?php $email = trim((string)($submission['email'] ?? '')); ?>
+                            <li>
+                                <span class="check-box" aria-hidden="true"></span>
+                                <?php if ($email !== ''): ?>
+                                    <a href="mailto:<?= h($email) ?>"><?= h($submission['name']) ?></a>
+                                <?php else: ?>
+                                    <?= h($submission['name']) ?>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </section>
+
+            <section class="list-block">
+                <h4><?= h(__('Food preferences only')) ?></h4>
+                <?php if (!$foodOnlySubmissions): ?>
+                    <p class="muted"><?= h(__('No food preferences submitted yet.')) ?></p>
+                <?php else: ?>
+                    <ul class="check-list">
+                        <?php foreach ($foodOnlySubmissions as $submission): ?>
+                            <li>
+                                <span class="check-box" aria-hidden="true"></span>
+                                <span><?= h((string)$submission['food_pref']) ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </section>
+        </div>
     </div>
 
     <div class="card print-only">
@@ -146,28 +197,63 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
         <div class="muted" style="margin-bottom:10px;">
             <?= h($party['title']) ?><?php if ($party['event_date']): ?> | <?= h($party['event_date']) ?><?php endif; ?>
         </div>
-        <?php if (!$attendingSubmissions): ?>
-            <p><?= h(__('No participants yet.')) ?></p>
-        <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th><?= h(__('Name')) ?></th>
-                        <th><?= h(__('Email')) ?></th>
-                        <th><?= h(__('Guests')) ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($attendingSubmissions as $submission): ?>
-                        <tr>
-                            <td><?= h($submission['name']) ?></td>
-                            <td><?= h($submission['email']) ?></td>
-                            <td><?= (int) $submission['guests'] ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+        <div class="list-columns">
+            <section class="list-block print-target print-attending">
+                <h4><?= h(__('Attending')) ?></h4>
+                <?php if (!$attendingSubmissions): ?>
+                    <p class="muted"><?= h(__('No participants yet.')) ?></p>
+                <?php else: ?>
+                    <ul class="check-list">
+                        <?php foreach ($attendingSubmissions as $submission): ?>
+                            <?php $email = trim((string)($submission['email'] ?? '')); ?>
+                            <li>
+                                <span class="check-box" aria-hidden="true"></span>
+                                <?php if ($email !== ''): ?>
+                                    <a href="mailto:<?= h($email) ?>"><?= h($submission['name']) ?></a>
+                                <?php else: ?>
+                                    <?= h($submission['name']) ?>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </section>
+            <section class="list-block print-target print-declined">
+                <h4><?= h(__('Not attending')) ?></h4>
+                <?php if (!$declinedSubmissions): ?>
+                    <p class="muted"><?= h(__('No declined responses yet.')) ?></p>
+                <?php else: ?>
+                    <ul class="check-list">
+                        <?php foreach ($declinedSubmissions as $submission): ?>
+                            <?php $email = trim((string)($submission['email'] ?? '')); ?>
+                            <li>
+                                <span class="check-box" aria-hidden="true"></span>
+                                <?php if ($email !== ''): ?>
+                                    <a href="mailto:<?= h($email) ?>"><?= h($submission['name']) ?></a>
+                                <?php else: ?>
+                                    <?= h($submission['name']) ?>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </section>
+            <section class="list-block print-target print-food">
+                <h4><?= h(__('Food preferences only')) ?></h4>
+                <?php if (!$foodOnlySubmissions): ?>
+                    <p class="muted"><?= h(__('No food preferences submitted yet.')) ?></p>
+                <?php else: ?>
+                    <ul class="check-list">
+                        <?php foreach ($foodOnlySubmissions as $submission): ?>
+                            <li>
+                                <span class="check-box" aria-hidden="true"></span>
+                                <span><?= h((string)$submission['food_pref']) ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </section>
+        </div>
     </div>
 
     <div class="card">
@@ -189,10 +275,11 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
                     </thead>
                     <tbody>
                         <?php foreach ($submissions as $submission): ?>
+                            <?php $displayGuests = max(0, ((int) $submission['guests']) - 1); ?>
                             <tr>
                                 <td><?= h($submission['name']) ?><br><span class="muted" style="font-size:12px;"> <?= h($submission['email']) ?> </span></td>
                                 <td><?= (int)$submission['attending'] === 1 ? '<span class="pill success">' . h(__('Yes')) . '</span>' : '<span class="pill danger">' . h(__('No')) . '</span>' ?></td>
-                                <td><?= (int) $submission['guests'] ?></td>
+                                <td><?= $displayGuests ?></td>
                                 <td><?= $submission['food_pref'] ? h($submission['food_pref']) : '<span class="muted">' . h(__('None')) . '</span>' ?></td>
                                 <?php $msg = trim((string) ($submission['message'] ?? '')); ?>
                                 <td><?= $msg !== '' ? h($msg) : '' ?></td>
@@ -205,19 +292,29 @@ echo '<style>:root{--accent:' . h($accent) . ';}</style>';
         <?php endif; ?>
     </div>
 
-    <div class="card">
-        <h3 style="margin-top:0;"><?= h(__('Food preferences only')) ?></h3>
-        <?php
-        $foodOnly = array_filter($submissions, fn($s) => trim((string)$s['food_pref']) !== '');
-        if (!$foodOnly): ?>
-            <p class="muted"><?= h(__('No food preferences submitted yet.')) ?></p>
-        <?php else: ?>
-            <ul>
-                <?php foreach ($foodOnly as $submission): ?>
-                    <li><?= h($submission['name']) ?> - <?= h($submission['food_pref']) ?></li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-    </div>
 </div>
+<script>
+(() => {
+    const modes = ['print-mode-all', 'print-mode-attending', 'print-mode-declined', 'print-mode-food'];
+    const setMode = (mode) => {
+        document.body.classList.remove(...modes);
+        document.body.classList.add(mode);
+    };
+    setMode('print-mode-all');
+    window.printList = (kind) => {
+        const map = {
+            attending: 'print-mode-attending',
+            declined: 'print-mode-declined',
+            food: 'print-mode-food'
+        };
+        setMode(map[kind] || 'print-mode-all');
+        window.print();
+    };
+    window.printAllLists = () => {
+        setMode('print-mode-all');
+        window.print();
+    };
+    window.addEventListener('afterprint', () => setMode('print-mode-all'));
+})();
+</script>
 <?php render_footer(); ?>

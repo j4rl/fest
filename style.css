@@ -163,6 +163,57 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 14px;
 }
+.list-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+.list-block {
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px;
+    background: rgba(255,255,255,0.02);
+}
+.list-block h4 {
+    margin: 0 0 8px;
+    font-size: 15px;
+}
+.check-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.check-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.check-list li:last-child {
+    border-bottom: 0;
+}
+.check-list a {
+    color: color-mix(in srgb, var(--accent) 70%, #ffffff);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    font-weight: 600;
+}
+.check-list a:visited {
+    color: color-mix(in srgb, var(--accent) 70%, #ffffff);
+}
+.check-list a:hover {
+    border-bottom-color: currentColor;
+}
+.check-box {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid currentColor;
+    border-radius: 2px;
+    flex: 0 0 14px;
+    margin-top: 3px;
+}
 .qr {
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 12px;
@@ -230,17 +281,50 @@ tr:hover td { background: rgba(255,255,255,0.02); }
         background: #ffffff;
         color: #111111;
     }
-    body * {
-        visibility: hidden;
+    header,
+    .hero,
+    .grid,
+    .no-print,
+    .container > .card:not(.print-only),
+    script {
+        display: none !important;
     }
-    .print-only, .print-only * {
-        visibility: visible;
+    .container {
+        max-width: none;
+        margin: 0;
+        padding: 0;
     }
     .print-only {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
+        display: block !important;
+        position: static;
+        width: auto;
+        margin: 0;
+    }
+    .print-only a {
+        color: #111111;
+        text-decoration: none;
+    }
+    .print-only .list-columns {
+        grid-template-columns: 1fr;
+    }
+    body.print-mode-attending .print-only .print-target,
+    body.print-mode-declined .print-only .print-target,
+    body.print-mode-food .print-only .print-target {
+        display: none !important;
+    }
+    body.print-mode-attending .print-only .print-attending,
+    body.print-mode-declined .print-only .print-declined,
+    body.print-mode-food .print-only .print-food {
+        display: block !important;
+    }
+    .print-only .list-block {
+        break-inside: auto;
+        page-break-inside: auto;
+        background: #ffffff;
+        border: 1px solid #dddddd;
+    }
+    .check-list li {
+        border-bottom: 1px solid #dddddd;
     }
     .card {
         background: #ffffff;
