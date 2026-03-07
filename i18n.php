@@ -1,5 +1,5 @@
-<?php
-declare(strict_types=1);
+﻿<?php
+//declare(strict_types=1);
 
 // Lightweight i18n helper with session-based language selection.
 // Usage: __('Text') returns a translated string if available; otherwise the original.
@@ -31,14 +31,14 @@ function translations(): array
             'Create a new party' => 'Skapa nytt evenemang',
             'Create events and track submissions.' => 'Skapa evenemang och följ svar.',
             'Create party' => 'Skapa evenemang',
-            'Dashboard' => 'Översikt',
+            'Dashboard' => 'Dina evenemang',
             'Date' => 'Datum',
             'Date TBD' => 'Datum ej bestämt',
             'Default admin login:' => 'Standardinloggning för admin:',
             'Delete' => 'Ta bort',
             'Delete party' => 'Ta bort evenemang',
             'Description' => 'Beskrivning',
-            'Details & QR' => 'Detaljer & QR',
+            'Details & QR' => 'Visa evenemang',
             'Disable responses' => 'Inaktivera svar',
             'Edit party' => 'Redigera evenemang',
             'Edit party details' => 'Redigera evenemanget',
@@ -83,8 +83,8 @@ function translations(): array
             'None' => 'Ingen',
             'Not attending' => 'Kommer inte',
             'Not found' => 'Hittades inte',
-            'Open' => 'Öppna',
-            'Open (edit)' => 'Öppna (redigera)',
+            'Open' => 'Ändra',
+            'Open (edit)' => 'Redigera',
             'Participant list' => 'Deltagarlista',
             'Party details' => 'Evenemangsdetaljer',
             'Party not found' => 'Evenemanget kunde inte hittas',
