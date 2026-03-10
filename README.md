@@ -19,6 +19,9 @@ Simple PHP + MySQL (MySQLi) app to manage parties, collect RSVPs, and track food
 1. Place the files in your web root (e.g., `htdocs/fest` for XAMPP).
 2. Ensure MySQL is running and PHP has `mysqli`, `mysqlnd`, and `fileinfo` enabled (default in XAMPP).
 3. Configure DB credentials via env vars if needed: `DB_HOST` (default `127.0.0.1`), `DB_PORT` (default `3306`), `DB_NAME` (default `fest`), `DB_USER` (default `root`), `DB_PASS` (default empty).
+   - On shared hosting, copy `config.example.php` to `config.php` and set your real DB values there.
+   - Optional: `DB_SOCKET` (or `socket` in `config.php`) for hosts that require a MySQL socket path.
+   - Optional: `DB_AUTO_CREATE=0` on hosting environments where DB creation is not allowed.
 4. Make sure `uploads/` is writable by PHP (for header image uploads).
 5. Load the site in your browser; the app will create the database/tables if missing and seed `admin/admin123`.
 6. If you already had an older database, run the migrations to add new columns:  

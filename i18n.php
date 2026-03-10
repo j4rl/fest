@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 //declare(strict_types=1);
 
 // Lightweight i18n helper with session-based language selection.
@@ -167,7 +167,7 @@ function current_lang(): string
     return $_SESSION['lang'] ?? 'sv';
 }
 
-function __(string $text, mixed ...$params): string
+function __(string $text, ...$params): string
 {
     $lang = current_lang();
     $map = translations();
@@ -178,7 +178,7 @@ function __(string $text, mixed ...$params): string
     return $translated;
 }
 
-function _e(string $text, mixed ...$params): void
+function _e(string $text, ...$params): void
 {
     echo __($text, ...$params);
 }
